@@ -1,6 +1,6 @@
 {
   "name": "ql-compat",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "扫描青龙面板与旧版 Node 环境不兼容的 API 调用",
   "main": "lib/index.js",
   "bin": {

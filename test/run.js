@@ -65,6 +65,18 @@ test('函数内 await 不报告', function () {
   assert.strictEqual(out.length, 0);
 });
 
+test('藏在调用参数里的顶层 await 要报告', function () {
+  const out = analyze('const c = JSON.parse(await fs.readFile("x", "utf8"));', { node: 14, extension: '.js' });
+  assert.ok(ids(out).indexOf('no-top-level-await') !== -1);
+});
+
+test('对象方法与箭头函数内的 await 不报告', function () {
+  const method = analyze('const o = {\n  async run() {\n    await go();\n  }\n};', { node: 14, extension: '.js' });
+  assert.strictEqual(method.length, 0);
+  const arrow = analyze('const f = async () => await go();', { node: 14, extension: '.js' });
+  assert.strictEqual(arrow.length, 0);
+});
+
 test('ESM 顶层 await 不报告', function () {
   const out = analyze('import fs from "fs";\nawait go();', { node: 14, extension: '.js' });
   assert.strictEqual(out.length, 0);
