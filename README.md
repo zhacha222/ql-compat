@@ -56,6 +56,10 @@ ql-compat rules
 | `no-fs-rm-sync` | 14.14 | error | `fs.rmSync()` 不存在 |
 | `no-string-replace-all` | 15 | warn | `String.prototype.replaceAll()` 不存在 |
 | `no-top-level-await` | 14.8 | error | CommonJS 顶层 `await` 直接语法错误 |
+| `no-node-protocol` | 14.18 | error | `node:` 模块前缀不被识别 |
+| `no-weak-ref` | 14.6 | error | `WeakRef` / `FinalizationRegistry` 不存在 |
+| `no-promise-any` | 15 | error | `Promise.any()` 不存在 |
+| `no-error-cause` | 16.9 | warn | `new Error(msg, { cause })` 被静默丢弃 |
 
 ## 准确性
 

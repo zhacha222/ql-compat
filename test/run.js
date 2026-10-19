@@ -81,6 +81,22 @@ test('ignore 生效', function () {
   assert.strictEqual(out.length, 0);
 });
 
+test('识别 node: 前缀、Promise.any 与 WeakRef', function () {
+  const out = analyze(
+    'const fs = require("node:fs");\nPromise.any([a, b]);\nconst r = new WeakRef(obj);',
+    { node: 12 }
+  );
+  const found = ids(out);
+  assert.ok(found.indexOf('no-node-protocol') !== -1);
+  assert.ok(found.indexOf('no-promise-any') !== -1);
+  assert.ok(found.indexOf('no-weak-ref') !== -1);
+});
+
+test('node: 前缀在 Node 16 目标下放行', function () {
+  const out = analyze('const fs = require("node:fs");', { node: 16 });
+  assert.strictEqual(out.length, 0);
+});
+
 test('行号列号正确', function () {
   const out = analyze('// x\n\n  fetch(u);', { node: 14 });
   assert.strictEqual(out[0].line, 3);
