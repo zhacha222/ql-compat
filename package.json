@@ -1,0 +1,35 @@
+{
+  "name": "ql-compat",
+  "version": "0.1.0",
+  "description": "扫描青龙面板与旧版 Node 环境不兼容的 API 调用",
+  "main": "lib/index.js",
+  "bin": {
+    "ql-compat": "bin/ql-compat.js"
+  },
+  "files": [
+    "bin",
+    "lib",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node test/run.js"
+  },
+  "engines": {
+    "node": ">=12"
+  },
+  "keywords": [
+    "qinglong",
+    "ql",
+    "node",
+    "compatibility",
+    "lint",
+    "legacy"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zhacha222/ql-compat.git"
+  },
+  "dependencies": {}
+}
