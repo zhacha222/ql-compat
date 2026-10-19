@@ -126,6 +126,7 @@ test('CLI 对干净文件返回 0', function () {
 });
 
 require('./server')(test);
+require('./labs')(test);
 
 let index = 0;
 

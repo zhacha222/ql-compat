@@ -20,3 +20,5 @@ jobs:
       - run: npm test
       - name: 自检示例脚本
         run: node bin/ql-compat.js check test/fixtures --json > /dev/null || true
+      - name: 教学材料一致性检查
+        run: node bin/ql-compat.js check docs/labs/solutions --node 14
