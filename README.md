@@ -67,6 +67,25 @@ ql-compat rules
 
 欢迎提交新的版本差异规则。
 
+## 自托管在线检查
+
+仓库自带一个零依赖的演示服务，粘贴代码即可返回扫描结果，方便没有本地 Node 环境的面板用户使用：
+
+```bash
+PORT=8080 node web/server.js
+# 打开 http://127.0.0.1:8080
+```
+
+接口：
+
+```bash
+curl -s http://127.0.0.1:8080/api/check \
+  -H 'Content-Type: application/json' \
+  -d '{"code":"fetch(\"https://example.com\")","node":14}'
+```
+
+服务只做内存分析，不写磁盘，单请求上限 200KB，单 IP 每分钟 60 次。Docker 与 systemd 部署示例见 `Dockerfile` 和 `deploy/ql-compat.service`。
+
 ## 许可
 
 [MIT](LICENSE)

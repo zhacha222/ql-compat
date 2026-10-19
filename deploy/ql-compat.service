@@ -1,0 +1,18 @@
+[Unit]
+Description=ql-compat web demo
+After=network.target
+
+[Service]
+Type=simple
+User=qlcompat
+WorkingDirectory=/opt/ql-compat
+Environment=PORT=8080
+ExecStart=/usr/bin/node /opt/ql-compat/web/server.js
+Restart=on-failure
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadOnlyPaths=/opt/ql-compat
+
+[Install]
+WantedBy=multi-user.target

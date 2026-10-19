@@ -5,19 +5,12 @@ const execFileSync = require('child_process').execFileSync;
 const path = require('path');
 const lib = require('../lib/index');
 
+const cases = [];
 let passed = 0;
 let failed = 0;
 
 function test(name, fn) {
-  try {
-    fn();
-    passed++;
-    console.log('  ok   ' + name);
-  } catch (err) {
-    failed++;
-    console.log('  FAIL ' + name);
-    console.log('       ' + (err && err.message));
-  }
+  cases.push({ name: name, fn: fn });
 }
 
 function analyze(source, options) {
@@ -116,6 +109,44 @@ test('CLI 对干净文件返回 0', function () {
   assert.strictEqual(parsed.findings.length, 0);
 });
 
-console.log('');
-console.log(passed + ' 通过, ' + failed + ' 失败');
-if (failed > 0) process.exit(1);
+require('./server')(test);
+
+let index = 0;
+
+function next() {
+  if (index >= cases.length) {
+    console.log('');
+    console.log(passed + ' 通过, ' + failed + ' 失败');
+    if (failed > 0) process.exit(1);
+    return;
+  }
+
+  const current = cases[index++];
+  let settled = false;
+
+  function done(err) {
+    if (settled) return;
+    settled = true;
+    if (err) {
+      failed++;
+      console.log('  FAIL ' + current.name);
+      console.log('       ' + (err && err.message));
+    } else {
+      passed++;
+      console.log('  ok   ' + current.name);
+    }
+    next();
+  }
+
+  try {
+    if (current.fn.length > 0) current.fn(done);
+    else {
+      current.fn();
+      done();
+    }
+  } catch (err) {
+    done(err);
+  }
+}
+
+next();

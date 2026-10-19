@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ql-compat 在线检查</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --panel: #171a21;
+    --line: #2a2f3a;
+    --text: #e6e9ef;
+    --dim: #99a1b3;
+    --accent: #6ee7a8;
+    --warn: #f2c14e;
+    --err: #ff6b6b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: radial-gradient(1200px 600px at 20% -10%, #1d2430, var(--bg));
+    color: var(--text);
+    font: 15px/1.6 ui-monospace, "Cascadia Mono", Consolas, monospace;
+  }
+  main { max-width: 980px; margin: 0 auto; padding: 40px 20px 80px; }
+  h1 { font-size: 26px; margin: 0 0 6px; letter-spacing: .5px; }
+  p.lead { color: var(--dim); margin: 0 0 28px; }
+  .bar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+  select, button {
+    background: var(--panel); color: var(--text); border: 1px solid var(--line);
+    border-radius: 8px; padding: 9px 14px; font: inherit; cursor: pointer;
+  }
+  button.primary { background: var(--accent); color: #06120c; border-color: transparent; font-weight: 700; }
+  button:disabled { opacity: .5; cursor: progress; }
+  textarea {
+    width: 100%; min-height: 280px; resize: vertical;
+    background: var(--panel); color: var(--text); border: 1px solid var(--line);
+    border-radius: 10px; padding: 14px; font: inherit;
+  }
+  textarea:focus { outline: 2px solid #2f6f52; }
+  #out { margin-top: 20px; }
+  .item {
+    border: 1px solid var(--line); border-left: 3px solid var(--err);
+    background: var(--panel); border-radius: 8px; padding: 12px 14px; margin-bottom: 10px;
+  }
+  .item.warn { border-left-color: var(--warn); }
+  .item .head { display: flex; gap: 10px; flex-wrap: wrap; align-items: baseline; }
+  .item .loc { color: var(--dim); }
+  .item .rule { color: var(--accent); }
+  .item .hint { margin-top: 6px; }
+  .item .fix { color: var(--dim); margin-top: 2px; }
+  .ok { color: var(--accent); }
+  .err { color: var(--err); }
+  footer { margin-top: 36px; color: var(--dim); font-size: 13px; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <h1>ql-compat 在线检查</h1>
+  <p class="lead">粘贴脚本，检查是否用到了旧版 Node 不支持的 API。代码只在本请求内分析，不落盘。</p>
+  <div class="bar">
+    <label for="node">目标 Node</label>
+    <select id="node">
+      <option value="12">12</option>
+      <option value="14" selected>14</option>
+      <option value="16">16</option>
+      <option value="18">18</option>
+    </select>
+    <button class="primary" id="run">检查</button>
+    <span id="status" class="loc"></span>
+  </div>
+  <textarea id="code" spellcheck="false">const res = await fetch("https://example.com/api");
+const signal = AbortSignal.timeout(3000);
+const copy = structuredClone(res);
+console.log([1, 2, 3].at(-1));</textarea>
+  <div id="out"></div>
+  <footer>
+    开源项目 <a href="https://github.com/zhacha222/ql-compat">zhacha222/ql-compat</a>，MIT 许可。
+  </footer>
+</main>
+<script>
+  var runBtn = document.getElementById('run');
+  var out = document.getElementById('out');
+  var statusEl = document.getElementById('status');
+
+  runBtn.addEventListener('click', function () {
+    var code = document.getElementById('code').value;
+    var node = document.getElementById('node').value;
+    runBtn.disabled = true;
+    statusEl.textContent = '分析中…';
+    out.innerHTML = '';
+
+    fetch('/api/check', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: code, node: Number(node) })
+    }).then(function (r) {
+      return r.json().then(function (body) { return { ok: r.ok, body: body }; });
+    }).then(function (result) {
+      if (!result.ok) throw new Error(result.body.error || '请求失败');
+      render(result.body.findings);
+    }).catch(function (err) {
+      statusEl.textContent = '';
+      out.innerHTML = '<div class="item"><div class="hint err">' + escapeHtml(err.message) + '</div></div>';
+    }).then(function () {
+      runBtn.disabled = false;
+      statusEl.textContent = '';
+    });
+  });
+
+  function render(findings) {
+    if (!findings.length) {
+      out.innerHTML = '<div class="item ok">未发现问题。</div>';
+      return;
+    }
+    out.innerHTML = findings.map(function (f) {
+      var cls = f.severity === 'warn' ? 'item warn' : 'item';
+      return '<div class="' + cls + '">' +
+        '<div class="head"><span class="loc">' + f.line + ':' + f.column + '</span>' +
+        '<span class="rule">' + escapeHtml(f.ruleId) + '</span>' +
+        '<span class="loc">Node ' + f.since + '+</span></div>' +
+        '<div class="hint">' + escapeHtml(f.hint) + '</div>' +
+        '<div class="fix">建议: ' + escapeHtml(f.fix) + '</div>' +
+        '</div>';
+    }).join('');
+  }
+
+  function escapeHtml(text) {
+    return String(text).replace(/[&<>"]/g, function (ch) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch];
+    });
+  }
+</script>
+</body>
+</html>
